@@ -1,8 +1,10 @@
 <?php
 
     $host = "127.0.0.1";        //default IP of MariaDB
-    $username = "username";     //default username for MariaDB   
-    $password = "password";     //default password for MariaDB
+    $username = "username";     //default dummy username for MariaDB   
+    $password = "password";     //default dummy password for MariaDB
+    $database = "database";     //default dummy name for database
+    $filename = "somefile.csv"  //default dummy name for CSV file
     
     if (sizeof($argv) <= 1) {
         echo "Error in Command.  Missing Directive instruction\n";
@@ -25,30 +27,33 @@
             case "--help":
                 helpInstructions();
                 break;
-            case str_starts_with($direct, "--file"):
-                echo $direct."\n";
+            case str_starts_with($direct, "--file"):  //assumes file name (or location) wont contain spaces
+                $file = explode(" ", $direct)
+                echo count($file) != 2 ? "missing or invalid filename\n" : processCSV($file[1]);
                 break;
             case "--create_table":
-                echo "create table\n";
+                //todo create database table
+                echo "database table created\n";
                 break;
             case "--dry_run":
+                //todo perform dry run
                 echo "dry run\n";
                 break;
-            case str_starts_with($direct, "-u"):
+            case str_starts_with($direct, "-u"): //username may contain spaces - so will need to rejoin elements
                 $user = explode(" ", $direct);
-                echo (count($user)!= 2) ? count($user)."\n" : count($user)."\n" ;
+                echo count($user)!= 2 ? "missing for invalid password\n" : count($user)."\n";
                 break;
-            case str_starts_with($direct, "-p"):
+            case str_starts_with($direct, "-p"):  //password may contain spaces - so will need to rejoin elements
                 $passw = explode(" ", $direct);
-                echo count($passw) != 2 ? $direct."\n" : "missing for invalid password\n";
+                echo count($passw) !> 2 ? "missing for invalid password\n" : $direct."\n";
                 break;
-            case str_starts_with($direct, "-h"):
+            case str_starts_with($direct, "-h"):  //assumes hostname wont contain spaces
                 $hostadd = explode(" ", $direct);
-                echo count($hostadd) != 2 ? $direct."\n" : "missing or invalid hostname\n";
+                echo count($hostadd) != 2 ? "missing or invalid hostname\n" : "Host name changed to: ".$host = $hostadd[1];
                 break;
-            case str_starts_with($direct, "-d"):
+            case str_starts_with($direct, "-d"):  //assumes database name wont contain spaces
                 $datab = explode(" ", $direct);
-                echo count($datab) != 2 ? $direct."\n" : "missing or invalid database name\n";
+                echo count($datab) != 2 ? "missing or invalid database name\n" : "Database name changed to: ".$database = $datab[1]."\n";
                 break;
             default:
                 echo "imvalid directive command\n";
