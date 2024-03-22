@@ -9,4 +9,7 @@
 * MariaDB 10.5.23
 
 #### Assumptions
+* MSQL\MariaDB Host address wont contain spaces
+* Database Name wont contain spaces 
+* CSV filename wont contain spaces
 
