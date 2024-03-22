@@ -12,4 +12,5 @@
 * MSQL\MariaDB Host address wont contain spaces
 * Database Name wont contain spaces 
 * CSV filename wont contain spaces
+* As PDF didn't define when CSV would be written to db (no directive for it) - it will be written when you exit the script by entering no directive.
 
