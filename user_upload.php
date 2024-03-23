@@ -45,6 +45,8 @@ function checkBaseDirectives() {
     $direct = getopt($sOpts, $lOpts);
     global $database, $host, $username, $password, $filename, $errorMsg, $dryrun;
 
+    /* TO DO: NEED TO HANDLE BAD $direct VALUES i.e:--file some file.csv - which has no quotation marks */
+
     if (in_array("d", array_keys($direct)))
         $database = $direct['d'];
     else
