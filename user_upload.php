@@ -18,12 +18,14 @@ if ($argc <= 1) {
             exit(helpInstructions());
         } else {
             if ($dryrun) {
-                //perform a dry run
+                readCSV();
+                exit;
             }
             if (!createDBConnection()) {  //IF Database connection failed, then we'll display Help as a courtesy & exit.
                 exit(helpInstructions());
             } else if (!$dryrun) {          //If its a dry run, then we're not using\testing the database
                 //do something
+                createTable();
                 R::close();
             }
         }
@@ -79,6 +81,51 @@ function checkBaseDirectives() {
     } else {
         return TRUE;
     }
+}
+
+//function to read the CSV and format the data in an array
+function readCSV() {
+    //If the file doesn't exist then supply error
+    if (!file_exists($GLOBALS['filename']))
+        exit("Error - Unable to locate ".$GLOBALS['filename'].". Please check the file exists\n");
+
+    //We want to exclude the firstline, so add a flag for it.
+    $firstline = TRUE;
+    
+    if (($file = fopen($GLOBALS['filename'], "r")) !== FALSE) {
+        while (($csvData = fgetcsv($file, 1000, ',')) !== FALSE) {
+            if (!$firstline) {
+            //format our CSV data & replace existing array data
+                $csvData[0] = trim(ucwords(strtolower($csvData[0])));
+                $csvData[1] = trim(ucwords(strtolower($csvData[1])));
+                if (filter_var(trim(strtolower($csvData[2])), FILTER_VALIDATE_EMAIL))
+                    $data[2] = trim(strtolower($csvData[2]));
+                else
+                    $data[2] = "";
+                
+                if (($GLOBALS['dryrun']) == TRUE)
+                    echo "firstname:".$csvData[0]."  lastname:".$csvData[1]."  email:".$csvData[2]."\n";
+            }
+            $firstline = FALSE;
+        }
+    }
+}
+
+function createTable() {
+    try {
+        if ($users = R::load('users') != 0);
+            R::trash($users);
+        
+        $users = R::dispense('users');
+        $users->email;
+        $users->firstname;
+        $users->lastname;
+        $id = R::store($users);
+
+    } catch (Exception $e) {
+        echo "an error occured: ".$e;
+    }
+
 }
 
 //Create the Database Connection using directive values.  We still use a try\catch incase the RedBean file is missing (RedBean doesn't pass PDO errors back)
