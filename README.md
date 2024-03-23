@@ -18,10 +18,11 @@
 * Username wont contain spaces unless its encapsulated within quotation marks
 * Password wont contain spaces unless its encapsulated within quotation marks
 * CSV filename wont contain spaces unless its encapsulated within quotation marks.
-* If Create_table directive is excluded & then table exists, then data will be appended to it.
+* Performing a `dry_run` on the csv will require all directives - the same as when not performing a dry_run.
+* If `create_table` directive is excluded & the table exists, then data will be appended to it.
 
 #### Usage:
-The file `rb-mysql.php' needs to be included in the same directory as where the script will run (so it can then use RedBean ORM).
+The file rb-mysql.php needs to be included in the same directory as where the script will run (so it can then use RedBean ORM).
 To display the Help instructions:
 `php user_upload.php --help`
 
