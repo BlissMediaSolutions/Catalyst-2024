@@ -1,7 +1,7 @@
 <?php
 
 $host = $username = $password = $database = $filename = $errorMsg = $dryrun = $createT = "";
-$dir = "";
+$dir = $db = "";
 
 /* Main program start */
 if ($argc <= 1) {
@@ -15,21 +15,16 @@ if ($argc <= 1) {
         if (!checkBaseDirectives($argc)) {    //If BaseDirectives failed, then we'll display Help as a courtesy & exit.
             echo "\n";
             exit(helpInstructions());
-        } else {
-            if ($dryrun) {
-                readCSV();
+        } else {                        
+            if ($GLOBALS['dryrun']) {           //Everything passed so far, but dryrun is TRUE - so we'll just display the data.
+                readCSV($db);
                 exit();
             }
-            //if (!createDBConnection()) {  //IF Database connection failed, then we'll display Help as a courtesy & exit.
-            //echo "about to run createDBConnection()\n";
             $db = createDBConnection();
-            if ($db === FALSE) {
-                exit(helpInstructions());
-            } else if (!$dryrun) {          //If its a dry run, then we're not using\testing the database
-                //do something
-                createTable($db);
+            createTable($db);
+            readCSV($db);
+            $db=null;
             }
-        }
     }
 }
 /* Main program end */
@@ -43,7 +38,7 @@ function checkDirectiveExists($dir, $argv, $argc) {
 //create_table directive is required as email field is unique but then requires an empty space for invalid emails (so table gets dropped & recreated each time)
 function checkBaseDirectives($argc) {
     $sOpts = "d:h:u:p:";
-    $lOpts = array("file:","create_table:","dry_run::");
+    $lOpts = array("file:","create_table::","dry_run::");
     $direct = getopt($sOpts, $lOpts, $count);
     global $database, $host, $username, $password, $filename, $errorMsg, $dryrun, $createT;
 
@@ -83,22 +78,24 @@ function checkBaseDirectives($argc) {
     else
         $errorMsg .= "Error - Missing directive & filename for CSV file\n";
 
-    //check if create_table directive is present - as its required.
-    if (in_array("create_table", array_keys($direct)))
-        $createT = TRUE;
-    else
-        $errorMsg .= "Error - Missing directive to create database table\n";
-
     //dry_run directive is OPTIONAL. Set a flag value as to if its present
     if (in_array("dry_run", array_keys($direct)))
         $dryrun = TRUE;
     else
         $dryrun = FALSE;
 
+    //check if create_table directive is present - is required when not dry_run
+    if (!$dryrun) {
+        if (in_array("create_table", array_keys($direct)))
+            $createT = TRUE;
+        else
+            $errorMsg .= "Error - Missing directive to create database table\n";
+    }
+
     //Basic check to see if $filename has .csv extension in name. **This doesn't actually check if its actually a properly structured\encoded CSV file.
-    $ext = new SplFileIno($GLOBALS['filename']);
+    $ext = new SplFileInfo($filename);
     If (strtolower($ext->getExtension()) != ("csv") OR (empty($ext)) OR ($ext == NULL))
-        $errorMsg .= "Error - Invalid filename.  Only CSV files are supported & filename must include extension\n";
+        $errorMsg .= "Error - Invalid filename.  Only CSV files are supported & filename must include the extension\n";
 
     if ((!empty($errorMsg)) OR ($errorMsg != NULL)) {
         echo $errorMsg;
@@ -108,22 +105,47 @@ function checkBaseDirectives($argc) {
     }
 }
 
-//function to read the CSV and format the data in an array
-function readCSV() {
-    //If the file doesn't exist then supply error
+//function to read the CSV and format the data in an array.  Also responsible for inserting data into table.
+function readCSV($dBase) {
+    //If the file doesn't exist then return error & exit
     if (!file_exists($GLOBALS['filename']))
         exit("Error - Unable to locate ".$GLOBALS['filename']." file. Please check the file actually exists\n");
 
     //We want to exclude the firstline, so add a flag for it.
     $firstline = TRUE;
+
+    if ($GLOBALS['dryrun']);
+        echo "Performing a dry_run of the CSV data (this is what would be written to the database)...\n";
    
     if (($file = fopen($GLOBALS['filename'], "r")) !== FALSE) {
         while (($csvData = fgetcsv($file, 1000, ',')) !== FALSE) {
             if (!$firstline) {
-                //format our CSV data & replace existing array data emails if invalid
+                //cleanup & format our CSV data & replace existing array data emails if invalid
                 $csvData[0] = trim(ucwords(strtolower($csvData[0])));
                 $csvData[1] = trim(ucwords(strtolower($csvData[1])));
+                $csvData[2] = trim(strtolower($csvData[2]));
+                
+                //If its not a dryrun & there's an invalid email address - write to error log
+                if ((!$GLOBALS['dryrun']) && (!filter_var($csvData[2], FILTER_VALIDATE_EMAIL)))
+                    //echo "invalid email: ".$csvData[2]."\n";
+                
+                //replace invalid email address in array with blankspace
                 (filter_var(trim(strtolower($csvData[2])), FILTER_VALIDATE_EMAIL)) ? $csvData[2] = trim(strtolower($csvData[2])) : $csvData[2] = "";
+
+                if (!$GLOBALS['dryrun']) {
+                    try {
+                        //Find & replace apostrophes in strings - just for writing to the database
+                        $fname = str_replace("'","''",$csvData[0]);  
+                        $flastname = str_replace("'","''",$csvData[1]);
+                        $femail = str_replace("'","''",$csvData[2]);
+                        //insert into database
+                        $dBase->exec("INSERT INTO users (firstname, lastname, email) VALUES ('$fname','$flastname','$femail')");    
+                    
+                    } catch (PDOException $e) {
+                        
+                        echo "Problem inserting userdata: ".$e->getmessage()."\n";
+                    }
+                }
 
                 if (($GLOBALS['dryrun']) == TRUE)
                     echo "firstname:".$csvData[0]."  lastname:".$csvData[1]."  email:".$csvData[2]."\n";
@@ -135,26 +157,20 @@ function readCSV() {
 
 function createTable($db) {
     try {
-        echo "try dropping table...\n";
-        $result = mysqli_query($db, "USE ".$GLOBALS['database']);
-        $result = mysqli_query($db, "DROP TABLE IF EXISTS users"); 
-        //$result = $db.query("USE ".$GLOBALS['database']);
-        //$result2 = $db.query("DROP TABLE IF EXISTS ".$GLOBALS['database']);
-        var_dump($result2);
-        echo "Table should be dropped...\n";
+        
+        $statements = array(
+            "DROP TABLE IF EXISTS users;",
+            "CREATE TABLE users (firstname VARCHAR(30), lastname VARCHAR(30), email VARCHAR(50));",
+            "CREATE UNIQUE INDEX email_idx ON users (email);"
+        );
 
+        foreach ($statements as $statement) {
+            $db->exec($statement);
+        }
+        //echo "done with table prep...";
 
-        //$create = $db.query("CREATE DATABASE IF NOT EXISTS ".$GLOBALS['database']);
-        //$result = mysqli_query($db, "CREATE DATABASE IF NOT EXISTS ".$GLOBALS['database']);
-        $sqlquery = "CREATE TABLE users (firstname VARCHAR(30), lastname VARCHAR(30), email VARCHAR(50)";
-        $result = mysqli_query($db, $sqlquery);
-        //$create = $db.query($sqlquery);
-        echo "Creating new database table...\n"; 
-        mysqli_close($db);
-        $db = null;
-
-    } catch (Exception $e) {
-        echo "An Error occured while trying to create the table: ".$e;
+    } catch (PDOException $e) {
+        exit ("Problem with database table users: ".$e->getmessage()."\n");
     }
 
 }
@@ -165,24 +181,13 @@ function createDBConnection() {
         //$con = mysqli_connect("127.0.0.1:3306","adminer","password","catalyst");  //THIS IS TESTED WORKING with hardcoded
 
         echo "Trying to create db connection...\n";
-        //$db = new PDO("mysql:host=".$GLOBALS['host'].";dbname=".$GLOBALS['database'],$GLOBALS['username'],$GLOBALS['password']);
-        $con = mysqli_connect($GLOBALS['host'],$GLOBALS['username'],$GLOBALS['password'],$GLOBALS['database']);
-        if (mysqli_connect_errno()) {
-            echo "Failed to connect to Database: " .mysqli_connect_error();
-            exit();
-        }
+        $db = new PDO("mysql:host=".$GLOBALS['host'].";dbname=".$GLOBALS['database'],$GLOBALS['username'],$GLOBALS['password']);
         
-        echo "connected to database...\n";
-        return $con;
-        //$conn = mysqli_connect($GLOBALS['host'], $GLOBALS['username'], $GLOBALS['password'], $GLOBALS['database']);
-        //if ($conn) {
-        //    echo "Creating new database connection created\n";
-        //    return $conn;
-        //}
-    } catch (Exception $e) {
-        echo "Problem with database connection: ".$e->getmessage();
-        return FALSE;
-        //exit(helpInstructions());
+        //echo "connected to database...\n";
+        return $db;
+        
+    } catch (PDOException $e) {
+        exit ("Problem with database connection: ".$e->getmessage()."\n");
     }
 }
 
@@ -203,5 +208,6 @@ function helpInstructions()
 
         echo $text."\n";
     }
+
 
 ?>
