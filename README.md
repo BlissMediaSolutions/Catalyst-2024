@@ -8,9 +8,6 @@
 * PHP 8.1.27
 * MariaDB 10.5.23
 
-#### Makes use of:
-* RedBean ORM (for database)
-
 #### Assumptions:
 * If the Help directive was included (with all other directives) we assume the user needs help & just display the Help without trying to access the database or process any data.
 * The directives for: database, host, username, password, filename & create_table should all be 'required'.  If any are excluded it will supply an error message with Help displayed.
