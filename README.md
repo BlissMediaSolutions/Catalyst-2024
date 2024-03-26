@@ -33,26 +33,26 @@
 
 #### Usage:
 When using the script, various directives (or arguments) need to be supplied - most of these are required.  These are:
---file [csv filename] *required     - csv file to be processed
---create_table *required        
---dry_run                           - perform a dry run of the CSV file without writing to database
--d [database name] *required        - the database name
--h [hostname ] *required            - the host address for the database
--u [user name] *required            - username for access to the database
--p [password ] *required            - password for access to the database
---help                              - display Help instructions on the screen.
-Using\including dry_run directive is optional
+* --file [csv filename] *required     - csv file to be processed
+* --create_table *required        
+* --dry_run                           - perform a dry run of the CSV file without writing to database
+* -d [database name] *required        - the database name
+* -h [hostname ] *required            - the host address for the database
+* -u [user name] *required            - username for access to the database
+* -p [password ] *required            - password for access to the database
+* --help                              - display Help instructions on the screen.
+* Using\including dry_run directive is optional
 
 To display the Help instructions:
-`php user_upload.php --help`
+* `php user_upload.php --help`
 To perform a dry_run (this requires all directives):
-`php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --create_table --dry_run`
+* `php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --create_table --dry_run`
 To process the CSV and write to the database:
-`php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --create_table`
+* `php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --create_table`
 Whenever the Help directive is included like with this, then only the help instructions get displayed and nothing else will happen.
-`php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --dry_run --help`
+* `php user_upload.php -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --dry_run --help`
 If (required) directives are excluded, but Help directive is included - then only Help instructions display.
-`php user_upload.php -d catalyst -h 127.0.0.1:3306 --help`
+* `php user_upload.php -d catalyst -h 127.0.0.1:3306 --help`
 If required directive(s) is missing, an appropriate error will be displayed for what directives are missing.
 
 #### Future Improvements \ upgrades:
