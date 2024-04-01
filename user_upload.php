@@ -1,8 +1,8 @@
 <?php
 
 error_reporting(-1);
-$host = $username = $password = $database = $filename = $errorMsg = $dryrun = $createT = "";
-$dir = $db = "";
+//$host = $username = $password = $database = $filename = $errorMsg = $dryrun = $createT = "";
+//$dir = $db = "";
 
 /* Main program start */
 if ($argc <= 1) {
@@ -189,7 +189,7 @@ function createDBConnection() {
     }
 }
 
-function helpInstructions()
+/*function helpInstructions()
     {
         $text = "\n     |>> ** USER_UPLOAD DIRECTIVES ** <<|     \n".
             "--help = Display these instructions for directive usage\n".
@@ -205,6 +205,116 @@ function helpInstructions()
             "`php user_upload.php --file \"some file.csv\" -u root -p passwword -d something -h localhost`  - this is correct with quoation marks\n"; 
 
         echo $text."\n";
+    } */
+
+    class Directive {
+
+        private string $host;
+        private string $database;
+        private string $username;
+        private string $password;
+        private string $csvFile;
+        private bool $dryrun;
+        private bool $createT;
+        private int $argc;
+        private $argv;
+        
+        function __construct($argc, $argv) {
+            $this->argc = $argc;
+            $this->argv = $argv;
+
+            //If no directives, then we quit on the constructor
+            if ($this->argc <= 1) {
+                echo "Error in Command.  Missing Directive instruction\n";  //No directives were included
+                exit (helpInstructions());
+            }
+        }
+
+        function set_host($host) {
+            $this->host = $host;
+        }
+
+        function set_database($database) {
+            $this->database = $database;
+        }
+
+        function set_username($username) {
+            $this->username = $username;
+        }
+
+        function set_password($password) {
+            $this->password = $password;
+        }
+
+        function set_csvFile($csvFile) {
+            $this->csvFile = $csvFile;
+        }
+
+        function set_dryrun($dryrun) {
+            $this->dryrun = $dryrun;
+        }
+
+        function set_createT($createT) {
+            $this->createT = $createT;
+        }
+
+        function get_host() {
+            return $this->host;
+        }
+
+        function get_database() {
+            return $this->database;
+        }
+
+        function get_username() {
+            return $this->username;
+        }
+
+        function get_password() {
+            return $this->password;
+        }
+
+        function get_csvFile() {
+            return $this->csvFile;
+        }
+
+        function get_dryrun() {
+            return $this->dryrun;
+        }
+
+        function get_createT() {
+            return $this->createT;
+        }
+
+        function help_instruction() {
+            $text = "\n     |>> ** USER_UPLOAD DIRECTIVES ** <<|     \n".
+                "--help = Display these instructions for directive usage\n".
+                "--file [csv filename] = this is the name of the CSV file to be parsed into the database\n".
+                "--create_table = will create the users db table\n".
+                "--dry_run = Peforms a dry run on the csv file, but doesn't actually write any data to the Db\n".
+                "-u [username] = set the database username\n".
+                "-p [password] = set the database password\n".
+                "-h [host] = set the database host\n".
+                "-d [database] = set the database name\n".
+                "\n NOTE - If a username, passwword, database or file contains a space, then it needs to be ecapsulated\n".
+                "for example:\n`php user_upload.php --file some file.csv -u root -p password -d something -h localhost`  - this will fail\n".
+                "`php user_upload.php --file \"some file.csv\" -u root -p passwword -d something -h localhost`  - this is correct with quoation marks\n"; 
+
+            echo $text."\n";
+        }
+
+        function checkDirectives() {
+            $sOpts = "d:h:u:p:";
+            $lOpts = array("file:","create_table","dry_run","help");
+            $direct = getopt($sOpts, $lOpts, $count);
+
+            //First check - if Directives are correct with spaces\quoation marks then $argc will equal final index of getOpt
+            if ($count != $this->argc) {
+                echo "Error with directives.  Please check there are no invalid spaces\n";
+                exit(helpInstructions());
+            }
+        }
+
     }
 
 
