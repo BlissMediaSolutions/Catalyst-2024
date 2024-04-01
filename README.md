@@ -30,6 +30,7 @@
 * This hasn't been tested against EOL versions of PHP ~ like PHP versions 3,4 & 5.
 * This hasn't been tested on a Windows OS or Mac OS.
 * While getOpt is preferred for reading directives passed (due to requirements), it does experience issues when having directives with no value - like create_table & dry_run.  Thus these need to be checked in argv array as well.
+* Name & surname fields in the databse only accept 30 characters.  Email field in the database only accepts 50 characters. (these can be easily changed in the code).
 
 #### Usage:
 When using the script, various directives (or arguments) need to be supplied - most of these are required.  These are:
