@@ -61,3 +61,9 @@ If required directive(s) is missing, an appropriate error will be displayed for 
 * Check the structure & encoding of the CSV file
 * Could have used a Class for Database queries - but PDO already an object, & having a wrapper for PDO didn't appear to make much sense.
 * Reduce\replace Global variables - possibly change these to Enum.
+
+#### Update - since refactor commits
+* Now making use of Directive class
+* setter (and getter) functions for Directive class not really needed - done for completeness & expandability.
+* MIME type of data file is now checked that its CSV
+* Removing Global variables
