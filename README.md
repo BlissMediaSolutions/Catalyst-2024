@@ -12,8 +12,8 @@
 * The order in which directives are entered should not matter.
 * If the Help directive was included (with all other directives) we assume the user needs help & just display the Help without trying to access the database or process any data.
 * The directives for: database, host, username, password, filename & create_table should all be 'required'.  If any are excluded it will supply an error message with Help displayed.
-* When performing a 'dry_run' then all required directives are present.  A dry_run will test the connection to the database, but it will not drop or create a table.
-* The CSV file being used is valid - it will check the file exists & has a CSV extension, but it will not check the structure or encoding of the file.
+* When performing a 'dry_run' then all required directives are present.  A dry_run will test the connection to the database, ~but it will not drop or create a table~.
+* The CSV file being used is valid - it will check the file exists & has a CSV extension, ~but it will not check the structure or encoding of the file~.
 * For MySQL\MariaDB Host - its assumed the user understands IP addresses & knows what Port its listening on.
 * Its assumed the database (as specifed in directive) will already exist.  This script wont create a database.
 * Its assumed username\password supplied in directives will already have appropriate access\permissions for the database.
@@ -25,7 +25,7 @@
 * The user has some experience running PHP Scripts in a CLI.
 
 #### Limiations:
-* While the script will check if a file exists (as given in directive) & that the directive filename has a CSV extension - it wont actually check the structure or encoding of the specifed CSV file in the directive.  i.e: It wont validate if its UTF-8 string encoding.
+* ~While the script will check if a file exists (as given in directive) & that the directive filename has a CSV extension - it wont actually check the structure or encoding of the specifed CSV file in the directive.  i.e: It wont validate if its UTF-8 string encoding.~
 * Having a directive repeated may cause issues i.e: `php user_upload.php --dry_run -d catalyst -h 127.0.0.1:3306 -u root -p password --file users.csv --create_table --dry_run`.  While directives are validated to an extent, this does not include them being repeated.
 * This hasn't been tested against EOL versions of PHP ~ like PHP versions 3,4 & 5.
 * This hasn't been tested on a Windows OS or Mac OS.
@@ -58,12 +58,13 @@ If required directive(s) is missing, an appropriate error will be displayed for 
 
 #### Future Improvements \ upgrades:
 * Use an ORM for database queries (RedBean not appropriate due to limitations)
-* Check the structure & encoding of the CSV file
+* ~Check the structure & encoding of the CSV file~
 * Could have used a Class for Database queries - but PDO already an object, & having a wrapper for PDO didn't appear to make much sense.
-* Reduce\replace Global variables - possibly change these to Enum.
+* ~Reduce\replace Global variables - possibly change these to Enum.~
 
 #### Update - since refactor commits
 * Now making use of Directive class
-* setter (and getter) functions for Directive class not really needed - done for completeness & expandability.
+* setter functions for Directive class not really needed - done for completeness & expandability.
 * MIME type of data file is now checked that its CSV
-* Removing Global variables
+* Removed Global variables - now use getter functions from class.
+* Dry_run now connects to database, (drops and) creates database table - just no data written to table.
